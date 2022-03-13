@@ -1,38 +1,32 @@
+import sys
 import socket
-from IPy import IP
+import threading
 
-def scan(target):
-    converted_ip = check_ip(target)
-    print('\n' + '[Scanning Target] ' + str(target))
-    for port in range(10, 30):
-        scan_port(converted_ip, port)
+usage = "python3 try_portscanner.py TARGET START_PORT END_PORT "
 
-def check_ip(ip):
-    try:
-        IP(ip)
-        return(ip)
-    except ValueError:
-        return socket.gethostbyname(ip)
+if (len(sys.argv)) != 4:
+    print(usage)
+    sys.exit()
 
-def get_banner(s):
-    return s.recv(1024)
+try:
+    target = socket.gethostbyname(sys.argv[1])
+except socket.gaierror:
+    print("Host is not active")
+    sys.exit()
 
-def scan_port(ipaddress, port):
-    try:
-       sock = socket.socket()
-       sock.settimeout(0.5)
-       sock.connect((ipaddress, port))
-       try:
-           banner = get_banner(sock)
-           print('[+] Open Port ' + str(port) + ' : ' + str(banner.decode().strip('\n')))
-       except:
-           print('[+] Open Port ' + str(port))
-    except:
-       pass
-       
-targets = input('[+] Enter Target To Scan: ')
-if ',' in targets:
-    for ip_add in targets.split(','):
-        scan(ip_add.strip(' '))
-else:
-    scan(targets)
+start_port = int(sys.argv[2])
+end_port = int(sys.argv[3])
+
+print("Scanning target", target)
+
+def scan_port(port):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(1)
+    conn = sock.connect_ex((target, port))
+    if (not conn):
+        print("Port {} is Open".format(port))
+    sock.close()
+
+for port in range(start_port, end_port + 1):
+    thread = threading.Thread(target = scan_port, args = (port,))
+    thread.start()
