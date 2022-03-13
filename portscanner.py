@@ -2,7 +2,7 @@ import sys
 import socket
 import threading
 
-usage = "python3 try_portscanner.py TARGET START_PORT END_PORT "
+usage = "python3 portscanner.py TARGET START_PORT END_PORT "
 
 if (len(sys.argv)) != 4:
     print(usage)
